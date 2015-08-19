@@ -1,0 +1,31 @@
+#!/usr/bin/env stap++
+
+@use nginx.pool
+@use nginx.lua
+@use luajit
+
+probe @pfunc(ngx_palloc)
+{
+    if (pid() == target()) {
+        printf("\n\nrequest pool size: %d\n", ngx_pool_size($pool))
+        printf("alloc size: %d\n\n", $size)
+        print_ubacktrace()
+        println("")
+        println(luajit_print_backtrace(1))
+    }
+}
+
+/*
+probe @pfunc(ngx_create_pool)
+{
+    if (pid() == target()) {
+        printf("\ncreate pool size: %d\n\n", $size)
+        print_ubacktrace()
+    }
+}
+*/
+
+probe begin
+{
+    printf("Start tracing %d ($^exec_path)\n", target())
+}
